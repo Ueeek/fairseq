@@ -1,3 +1,2 @@
-cython<0.29
 sphinx<2.0
 sphinx-argparse
