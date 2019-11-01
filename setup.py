@@ -4,12 +4,13 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import os
 from setuptools import setup, find_packages, Extension
 import sys
 
 
-if sys.version_info < (3,):
-    sys.exit('Sorry, Python3 is required for fairseq.')
+if sys.version_info < (3, 5):
+    sys.exit('Sorry, Python >=3.5 is required for fairseq.')
 
 
 with open('README.md') as f:
@@ -67,7 +68,7 @@ cmdclass = {}
 
 
 try:
-    # torch is not available when building docs
+    # torch is not available when generating docs
     from torch.utils import cpp_extension
     extensions.extend([
         cpp_extension.CppExtension(
@@ -80,6 +81,16 @@ try:
     cmdclass['build_ext'] = cpp_extension.BuildExtension
 except ImportError:
     pass
+
+
+# don't build extensions when generating docs
+if 'READTHEDOCS' in os.environ:
+    extensions = []
+    if 'build_ext' in cmdclass:
+        del cmdclass['build_ext']
+    install_requires_torch = []
+else:
+    install_requires_torch = ['torch']
 
 
 setup(
@@ -107,9 +118,8 @@ setup(
         'numpy',
         'regex',
         'sacrebleu',
-        'torch',
         'tqdm',
-    ],
+    ] + install_requires_torch,
     packages=find_packages(exclude=['scripts', 'tests']),
     ext_modules=extensions,
     test_suite='tests',
